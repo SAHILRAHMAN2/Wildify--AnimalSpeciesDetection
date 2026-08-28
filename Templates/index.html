@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal Species Detection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ────────────────────────────────────────────── */
+:root {
+  --bg:        #0D1F0F;
+  --surface:   #111E13;
+  --surface2:  #162019;
+  --border:    #1E3320;
+  --teal:      #0CC0DF;
+  --green:     #39FF14;
+  --amber:     #F5A623;
+  --red:       #FF4545;
+  --white:     #F0F0F0;
+  --muted:     #7A9E7D;
+  --dim:       #3A5C3D;
+  --font-disp: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-disp);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+  50%      { opacity: 0.4; box-shadow: 0 0 2px var(--green); }
+}
+.header-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--white);
+}
+.header-title span { color: var(--teal); }
+.header-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  gap: 20px;
+}
+.header-meta b { color: var(--teal); }
+
+/* ── MAIN LAYOUT ───────────────────────────────────────── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* ── CAMERA PANEL ──────────────────────────────────────── */
+.camera-panel {
+  position: relative;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.camera-feed-wrap {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+#live-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* HUD scan-line animation */
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--teal), transparent);
+  opacity: 0.4;
+  animation: scan 4s linear infinite;
+  pointer-events: none;
+}
+@keyframes scan {
+  0%   { top: 0%; }
+  100% { top: 100%; }
+}
+
+/* Corner HUD brackets */
+.hud-corner {
+  position: absolute;
+  width: 28px; height: 28px;
+  border-color: var(--teal);
+  border-style: solid;
+  opacity: 0.8;
+  pointer-events: none;
+}
+.hud-corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+.hud-corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+.hud-corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
+.hud-corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
+
+/* Live badge */
+.live-badge {
+  position: absolute;
+  top: 20px;
+  left: 54px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--teal);
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-dot 1.2s infinite;
+}
+
+/* Timestamp */
+.hud-time {
+  position: absolute;
+  top: 20px;
+  right: 54px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* Prediction overlay bar at bottom of feed */
+.pred-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(13,31,15,0.95));
+  padding: 32px 20px 16px;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.pred-overlay-species {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--green);
+  text-shadow: 0 0 20px rgba(57,255,20,0.4);
+  transition: color 0.4s;
+  text-transform: uppercase;
+}
+.pred-overlay-species.low { color: var(--amber); text-shadow: 0 0 20px rgba(245,166,35,0.3); }
+.pred-overlay-species.empty { color: var(--muted); }
+.pred-overlay-sub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 5px;
+}
+.pred-overlay-conf {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.conf-bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.conf-bar {
+  height: 100%;
+  background: var(--green);
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1), background 0.4s;
+}
+.conf-bar.low { background: var(--amber); }
+.conf-bar.very-low { background: var(--red); }
+
+/* Camera controls */
+.camera-controls {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.btn {
+  flex: 1;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--white);
+  font-family: var(--font-disp);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.btn:hover { background: var(--border); border-color: var(--teal); color: var(--teal); }
+.btn.primary { background: var(--teal); border-color: var(--teal); color: #000; font-weight: 600; }
+.btn.primary:hover { background: #0AAFCC; }
+.btn.danger { border-color: var(--red); }
+.btn.danger:hover { background: rgba(255,69,69,0.1); color: var(--red); }
+#upload-input { display: none; }
+
+/* ── SIDE PANEL ────────────────────────────────────────── */
+.side-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-section {
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.panel-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 10px 16px 6px;
+}
+
+/* ── CURRENT PREDICTION ─────────────────────────────── */
+.pred-card {
+  padding: 12px 16px 16px;
+}
+.pred-species-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  transition: color 0.4s;
+  margin-bottom: 6px;
+  min-height: 32px;
+}
+.pred-species-name.low-conf { color: var(--amber); }
+.pred-species-name.empty    { color: var(--dim); font-weight: 400; font-size: 16px; }
+
+.conf-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.conf-pct {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  width: 44px;
+  flex-shrink: 0;
+}
+.conf-bar-wrap-side {
+  flex: 1;
+  height: 5px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.conf-bar-side {
+  height: 100%;
+  background: var(--green);
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1), background 0.4s;
+}
+.conf-bar-side.low      { background: var(--amber); }
+.conf-bar-side.very-low { background: var(--red); }
+
+.warn-tag {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--amber);
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.25);
+  border-radius: 4px;
+  padding: 3px 8px;
+  margin-bottom: 8px;
+}
+.warn-tag.visible { display: inline-block; }
+
+.updated-row {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--dim);
+}
+
+/* ── TOP 3 ──────────────────────────────────────────── */
+.top3-list {
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.top3-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.top3-name {
+  font-size: 12px;
+  color: var(--white);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.top3-name.first { color: var(--teal); font-weight: 600; }
+.top3-bar-wrap {
+  width: 90px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.top3-bar { height: 100%; background: var(--teal); border-radius: 99px; transition: width 0.5s; }
+.top3-pct {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── STATS ROW ──────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.stat-box {
+  padding: 12px 10px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.stat-box:last-child { border-right: none; }
+.stat-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--teal);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* ── HISTORY ────────────────────────────────────────── */
+.history-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.history-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 0 8px;
+}
+.history-list::-webkit-scrollbar { width: 4px; }
+.history-list::-webkit-scrollbar-track { background: transparent; }
+.history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+.history-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(30,51,32,0.5);
+  transition: background 0.15s;
+}
+.history-item:hover { background: var(--surface2); }
+.history-item.new { animation: flash-in 0.4s ease; }
+@keyframes flash-in {
+  from { background: rgba(12,192,223,0.08); }
+  to   { background: transparent; }
+}
+.h-species {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.h-conf {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--teal);
+}
+.h-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--dim);
+}
+.history-empty {
+  padding: 20px 16px;
+  font-size: 12px;
+  color: var(--dim);
+  text-align: center;
+}
+
+/* ── UPLOAD PREVIEW ─────────────────────────────────── */
+.upload-result {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13,31,15,0.92);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.upload-result.visible { display: flex; }
+.upload-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 480px;
+  width: 90%;
+}
+.upload-img-wrap {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--bg);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.upload-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.upload-species {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: capitalize;
+  margin-bottom: 4px;
+}
+.upload-species.low { color: var(--amber); }
+.upload-conf {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.upload-top3 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.upload-top3-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.upload-top3-name {
+  width: 130px;
+  color: var(--white);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+.upload-top3-name.first { color: var(--teal); font-weight: 600; }
+.upload-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.upload-bar { height: 100%; background: var(--teal); border-radius: 99px; }
+.upload-pct { font-family: var(--font-mono); font-size: 10px; color: var(--muted); width: 36px; text-align: right; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────── -->
+<header>
+  <div class="header-left">
+    <div class="logo-dot"></div>
+    <div class="header-title">Animal Species <span>Detection</span></div>
+  </div>
+  <div class="header-meta">
+    <div>MODEL <b>MobileNetV2</b></div>
+    <div>CLASSES <b>{{ class_count }}</b></div>
+    <div>ACCURACY <b>74.94%</b></div>
+    <div id="clock" style="color:var(--teal)">--:--:--</div>
+  </div>
+</header>
+
+<!-- ── MAIN LAYOUT ─────────────────────────────────── -->
+<div class="main">
+
+  <!-- ── CAMERA PANEL ──────────────────────────────── -->
+  <div class="camera-panel">
+    <div class="camera-feed-wrap">
+      <video id="live-feed" autoplay playsinline muted></video>
+      <div class="scan-line"></div>
+      <div class="hud-corner tl"></div>
+      <div class="hud-corner tr"></div>
+      <div class="hud-corner bl"></div>
+      <div class="hud-corner br"></div>
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      <div class="hud-time" id="hud-time">--:--:--</div>
+
+      <!-- Prediction overlay on feed -->
+      <div class="pred-overlay" id="feed-overlay">
+        <div class="pred-overlay-species empty" id="overlay-species">Scanning...</div>
+        <div class="pred-overlay-sub">
+          <div class="pred-overlay-conf" id="overlay-conf">0.0%</div>
+          <div class="conf-bar-wrap">
+            <div class="conf-bar" id="overlay-bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="camera-controls">
+      <label class="btn" for="upload-input" title="Upload an image">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Image
+      </label>
+      <input type="file" id="upload-input" accept="image/*">
+      <button class="btn primary" id="snapshot-btn" title="Capture current frame">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M20 7h-2.5l-1-2h-9l-1 2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
+        Snapshot
+      </button>
+      <button class="btn" id="voice-btn" title="Voice commands">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+  <span id="voice-btn-label">Voice</span>
+</button>
+    </div>
+  </div>
+
+  <!-- ── SIDE PANEL ────────────────────────────────── -->
+  <div class="side-panel">
+
+    <!-- Current prediction -->
+    <div class="panel-section">
+      <div class="panel-label">Current Detection</div>
+      <div class="pred-card">
+        <div class="pred-species-name empty" id="side-species">Scanning...</div>
+        <div class="warn-tag" id="warn-tag">⚠ Low confidence</div>
+        <div class="conf-row">
+          <div class="conf-pct" id="side-conf">0.0%</div>
+          <div class="conf-bar-wrap-side">
+            <div class="conf-bar-side" id="side-bar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="updated-row">Updated: <span id="side-updated">—</span></div>
+      </div>
+    </div>
+
+    <!-- Top 3 -->
+    <div class="panel-section">
+      <div class="panel-label">Top 3 Predictions</div>
+      <div class="top3-list" id="top3-list">
+        <div style="color:var(--dim);font-size:12px;padding:4px 0">Waiting for detection...</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="stat-total">0</div>
+        <div class="stat-lbl">Predictions</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-top">—</div>
+        <div class="stat-lbl">Most Seen</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-avg">—</div>
+        <div class="stat-lbl">Avg Conf</div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-section">
+      <div class="panel-label">Detection History</div>
+      <div class="history-list" id="history-list">
+        <div class="history-empty">No detections yet</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── UPLOAD RESULT MODAL ─────────────────────────── -->
+<div class="upload-result" id="upload-modal">
+  <div class="upload-card">
+    <div class="upload-img-wrap">
+      <img id="upload-preview" src="" alt="">
+    </div>
+    <div class="upload-species" id="upload-species">—</div>
+    <div class="upload-conf" id="upload-conf">—</div>
+    <div class="upload-top3" id="upload-top3"></div>
+    <button class="btn" onclick="closeModal()" style="width:100%">Close</button>
+  </div>
+</div>
+
+<script>
+// ── CLOCK ─────────────────────────────────────────────
+function updateClock() {
+  const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+  document.getElementById('clock').textContent = now;
+  document.getElementById('hud-time').textContent = now;
+}
+setInterval(updateClock, 1000);
+updateClock();
+// ── BROWSER CAMERA ──────────────────────────────────────
+
+let cameraStream = null;
+
+async function startCamera() {
+  const video = document.getElementById('live-feed');
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+
+    video.srcObject = cameraStream;
+
+    await video.play();
+
+    console.log("Camera started successfully");
+
+  } catch (error) {
+
+    console.error("Camera error:", error);
+
+    alert(
+      "Unable to access the camera. Please allow camera permission."
+    );
+  }
+}
+
+startCamera();
+
+// ── CAMERA PREDICTION ───────────────────────────────────
+
+let predictionInterval = null;
+let isPredicting = false;
+
+function updatePredictionUI(d) {
+
+  const species = d.species;
+  const conf = d.confidence;
+  const low = d.low_conf;
+
+  // Feed overlay
+  const overlayEl = document.getElementById('overlay-species');
+  const overlayBar = document.getElementById('overlay-bar');
+  const overlayConf = document.getElementById('overlay-conf');
+
+  overlayEl.textContent = species.toUpperCase();
+  overlayEl.className =
+    'pred-overlay-species' + (low ? ' low' : '');
+
+  overlayConf.textContent = conf + '%';
+
+  overlayBar.style.width = conf + '%';
+
+  overlayBar.className =
+    'conf-bar' +
+    (low ? ' low' : conf < 40 ? ' very-low' : '');
+
+  // Side panel
+  const sideEl = document.getElementById('side-species');
+  const sideBar = document.getElementById('side-bar');
+  const sideConf = document.getElementById('side-conf');
+  const warnTag = document.getElementById('warn-tag');
+  const updatedEl = document.getElementById('side-updated');
+
+  sideEl.textContent = species;
+
+  sideEl.className =
+    'pred-species-name' + (low ? ' low-conf' : '');
+
+  sideConf.textContent = conf + '%';
+
+  sideBar.style.width = conf + '%';
+
+  sideBar.className =
+    'conf-bar-side' +
+    (low ? ' low' : conf < 40 ? ' very-low' : '');
+
+  warnTag.className =
+    'warn-tag' + (low ? ' visible' : '');
+
+  updatedEl.textContent = d.last_updated;
+
+  // Top 3 predictions
+  const top3El = document.getElementById('top3-list');
+
+  top3El.innerHTML = d.top3.map((item, i) => `
+    <div class="top3-item">
+      <div class="top3-name ${i === 0 ? 'first' : ''}">
+        ${item.species}
+      </div>
+
+      <div class="top3-bar-wrap">
+        <div
+          class="top3-bar"
+          style="width:${item.confidence}%">
+        </div>
+      </div>
+
+      <div class="top3-pct">
+        ${item.confidence}%
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// Capture current video frame and send it to Flask
+async function predictCameraFrame() {
+
+  if (isPredicting) return;
+
+  const video = document.getElementById('live-feed');
+
+  if (!video.videoWidth || !video.videoHeight) {
+    return;
+  }
+
+  isPredicting = true;
+
+  try {
+
+    const canvas = document.createElement('canvas');
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext('2d');
+
+    ctx.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const imageData = canvas.toDataURL(
+      'image/jpeg',
+      0.8
+    );
+
+    const response = await fetch(
+      '/predict_upload',
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          image: imageData
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (result.error) {
+      console.error(result.error);
+      return;
+    }
+
+    updatePredictionUI(result);
+
+  } catch (error) {
+
+    console.error(
+      'Prediction error:',
+      error
+    );
+
+  } finally {
+
+    isPredicting = false;
+  }
+}
+
+
+// Run prediction every 2 seconds
+setTimeout(() => {
+
+  predictionInterval = setInterval(
+    predictCameraFrame,
+    2000
+  );
+
+}, 1000);
+
+// ── HISTORY POLLING ────────────────────────────────────
+let lastFirstSpecies = null;
+
+function updateHistory() {
+  fetch('/history')
+    .then(r => r.json())
+    .then(logs => {
+      const listEl = document.getElementById('history-list');
+      if (!logs.length) {
+        listEl.innerHTML = '<div class="history-empty">No detections yet</div>';
+        return;
+      }
+
+      // Stats
+      const total = logs.length;
+      const avgConf = (logs.reduce((s, l) => s + l.confidence, 0) / total).toFixed(0);
+      const counts = {};
+      logs.forEach(l => { counts[l.species] = (counts[l.species] || 0) + 1; });
+      const topSpecies = Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-top').textContent = topSpecies;
+      document.getElementById('stat-avg').textContent = avgConf + '%';
+
+      const isNew = lastFirstSpecies !== null && logs[0].species !== lastFirstSpecies;
+      lastFirstSpecies = logs[0].species;
+
+      listEl.innerHTML = logs.map((l, i) => `
+        <div class="history-item ${i===0 && isNew ? 'new' : ''}">
+          <div class="h-species">${l.species}</div>
+          <div class="h-conf">${l.confidence}%</div>
+          <div class="h-time">${l.time}</div>
+        </div>`).join('');
+    })
+    .catch(() => {});
+}
+
+setInterval(updateHistory, 2000);
+updateHistory();
+
+// ── UPLOAD ─────────────────────────────────────────────
+document.getElementById('upload-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    document.getElementById('upload-preview').src = dataUrl;
+    fetch('/predict_upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataUrl }),
+    })
+    .then(r => r.json())
+    .then(d => showUploadResult(d))
+    .catch(() => alert('Prediction failed.'));
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+function showUploadResult(d) {
+  document.getElementById('upload-species').textContent = d.species;
+  document.getElementById('upload-species').className = 'upload-species' + (d.low_conf ? ' low' : '');
+  document.getElementById('upload-conf').textContent = `Confidence: ${d.confidence}%${d.low_conf ? ' — low confidence' : ''}`;
+  document.getElementById('upload-top3').innerHTML = d.top3.map((item, i) => `
+    <div class="upload-top3-item">
+      <div class="upload-top3-name ${i===0?'first':''}">${item.species}</div>
+      <div class="upload-bar-wrap"><div class="upload-bar" style="width:${item.confidence}%"></div></div>
+      <div class="upload-pct">${item.confidence}%</div>
+    </div>`).join('');
+  document.getElementById('upload-modal').classList.add('visible');
+}
+
+function closeModal() {
+  document.getElementById('upload-modal').classList.remove('visible');
+}
+document.getElementById('upload-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── SNAPSHOT ───────────────────────────────────────────
+
+document
+  .getElementById('snapshot-btn')
+  .addEventListener('click', async () => {
+
+    const video =
+      document.getElementById('live-feed');
+
+    if (!video.videoWidth) {
+      alert("Camera is not ready yet.");
+      return;
+    }
+
+    const canvas =
+      document.createElement('canvas');
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx =
+      canvas.getContext('2d');
+
+    ctx.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const imageData =
+      canvas.toDataURL(
+        'image/jpeg',
+        0.9
+      );
+
+    try {
+
+      const response =
+        await fetch(
+          '/predict_upload',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+              image: imageData
+            })
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+
+      updatePredictionUI(result);
+
+      document
+        .getElementById(
+          'upload-preview'
+        )
+        .src = imageData;
+
+      showUploadResult(result);
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(
+        'Prediction failed.'
+      );
+    }
+  });
+  
+// ── VOICE COMMANDS ──────────────────────────────────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const voiceBtn = document.getElementById('voice-btn');
+const voiceLabel = document.getElementById('voice-btn-label');
+
+if (!SpeechRecognition) {
+  voiceBtn.disabled = true;
+  voiceLabel.textContent = 'Voice N/A';
+} else {
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  let listening = false;
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+    console.log('Voice heard:', transcript);
+
+    if (transcript.includes('snapshot') || transcript.includes('capture') || transcript.includes('take photo')) {
+      document.getElementById('snapshot-btn').click();
+    } else if (transcript.includes('upload')) {
+      document.getElementById('upload-input').click();
+    } else if (transcript.includes('stop listening')) {
+      stopVoice();
+    }
+  };
+
+  recognition.onerror = (e) => {
+    console.warn('Speech recognition error:', e.error);
+    if (e.error === 'not-allowed' || e.error === 'no-speech') {
+      // keep UI in sync if it stops unexpectedly
+    }
+  };
+
+  recognition.onend = () => {
+    if (listening) recognition.start(); // auto-restart while active
+  };
+
+  function startVoice() {
+    recognition.start();
+    listening = true;
+    voiceBtn.classList.add('primary');
+    voiceLabel.textContent = 'Listening...';
+  }
+
+  function stopVoice() {
+    listening = false;
+    recognition.stop();
+    voiceBtn.classList.remove('primary');
+    voiceLabel.textContent = 'Voice';
+  }
+
+  voiceBtn.addEventListener('click', () => {
+    listening ? stopVoice() : startVoice();
+  });
+}
+</script>
+</body>
+</html>

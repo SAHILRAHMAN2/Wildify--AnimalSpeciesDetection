@@ -1,0 +1,302 @@
+[
+  {
+    "species": "Chicken",
+    "confidence": 19.8,
+    "time": "13:19:16",
+    "date": "2026-08-28"
+  },
+  {
+    "species": "Chicken",
+    "confidence": 14.8,
+    "time": "13:19:14",
+    "date": "2026-08-28"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 11.9,
+    "time": "13:19:12",
+    "date": "2026-08-28"
+  },
+  {
+    "species": "Horse",
+    "confidence": 19.6,
+    "time": "13:19:10",
+    "date": "2026-08-28"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 29.7,
+    "time": "10:39:30",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 20.5,
+    "time": "10:39:28",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 24.7,
+    "time": "10:39:27",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 18.5,
+    "time": "10:39:25",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 16.0,
+    "time": "10:39:24",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Penguin",
+    "confidence": 21.9,
+    "time": "10:39:22",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 15.3,
+    "time": "10:39:21",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 10.6,
+    "time": "10:39:19",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 22.4,
+    "time": "10:39:18",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 20.1,
+    "time": "10:39:16",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 17.0,
+    "time": "10:39:14",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 38.1,
+    "time": "10:39:13",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 29.9,
+    "time": "10:39:11",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Penguin",
+    "confidence": 27.6,
+    "time": "10:39:10",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Butterfly",
+    "confidence": 93.0,
+    "time": "10:39:08",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Butterfly",
+    "confidence": 80.1,
+    "time": "10:39:07",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Butterfly",
+    "confidence": 83.8,
+    "time": "10:39:05",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Chicken",
+    "confidence": 19.0,
+    "time": "10:39:04",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Butterfly",
+    "confidence": 25.3,
+    "time": "10:39:02",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 19.1,
+    "time": "10:39:00",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 15.6,
+    "time": "10:38:59",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 25.7,
+    "time": "10:38:57",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 14.6,
+    "time": "10:38:56",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 20.1,
+    "time": "10:38:54",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 13.9,
+    "time": "10:38:53",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 13.9,
+    "time": "10:38:51",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 17.8,
+    "time": "10:38:49",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 17.2,
+    "time": "10:38:48",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 14.9,
+    "time": "10:38:46",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 14.4,
+    "time": "10:38:45",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 20.2,
+    "time": "10:38:43",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 15.1,
+    "time": "10:38:42",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 16.8,
+    "time": "10:38:40",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Elephant",
+    "confidence": 16.5,
+    "time": "10:38:39",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 12.2,
+    "time": "10:38:37",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Elephant",
+    "confidence": 14.9,
+    "time": "10:38:35",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Elephant",
+    "confidence": 12.7,
+    "time": "10:38:34",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 8.7,
+    "time": "10:38:32",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Chicken",
+    "confidence": 10.0,
+    "time": "10:38:31",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 12.9,
+    "time": "10:38:29",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 31.7,
+    "time": "10:38:28",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Giraffe",
+    "confidence": 12.3,
+    "time": "10:38:26",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Monkey",
+    "confidence": 27.1,
+    "time": "10:38:25",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Horse",
+    "confidence": 47.4,
+    "time": "10:38:23",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Horse",
+    "confidence": 55.0,
+    "time": "10:38:21",
+    "date": "2026-08-07"
+  },
+  {
+    "species": "Horse",
+    "confidence": 68.6,
+    "time": "10:38:20",
+    "date": "2026-08-07"
+  }
+]
